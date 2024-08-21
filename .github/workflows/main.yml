@@ -1,0 +1,43 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'payment-gateway-nepal.sln'
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0.x' # Adjust the .NET version as needed
+
+    - name: Restore dependencies
+      run: dotnet restore $SOLUTION
+
+    - name: Build
+      run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
+
+    - name: Run tests
+      run: dotnet test $SOLUTION --configuration $BUILD_CONFIG --no-restore --verbosity normal
+
+    - name: Pack NuGet package
+      run: dotnet pack $SOLUTION --configuration $BUILD_CONFIG --no-build --output ./nupkg
+
+    - name: Publish NuGet package
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
