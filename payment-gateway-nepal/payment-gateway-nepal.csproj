@@ -4,6 +4,16 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <RootNamespace>payment_gateway_nepal</RootNamespace>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Sushil Shrestha</Authors>
+    <VersionPrefix>1.0.9</VersionPrefix>
+    <Description>This NuGet package provides a complete solution for integrating payment gateways commonly used in Nepal. It includes built-in support for eSewa and Khalti, making it easy to incorporate these popular payment methods into your .NET applications.</Description>
+    <PackageTags>nepali payment gateway; esewa; esewa v1; esewa v2; khalti ; khalti kpg v2;</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/shoesheill/PaymentGateway</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/shoesheill/PaymentGateway</PackageProjectUrl>
+    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <PackageId>payment-gateway-nepal</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
