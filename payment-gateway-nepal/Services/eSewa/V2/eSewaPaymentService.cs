@@ -72,16 +72,8 @@ namespace payment_gateway_nepal.eSewa.V2
                 var (apiUrl, httpMethod) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.eSewa, version, PaymentAction.VerifyPayment, _paymentMode);
                 string url = apiUrl + $"?product_code={eSewaResponse.product_code}&total_amount={eSewaResponse.total_amount}&transaction_uuid={eSewaResponse.transaction_uuid}";
                 eSewaResponse response = await new ApiService(new HttpClient()).GetAsyncResult<eSewaResponse>(url, httpMethod, null, null);
-                //ApiResponse apiResponse = new ApiResponse { data = response };
-                //if (response.status == "COMPLETE")
-                //    apiResponse.data = eSewaResponse;
-                //else
-                //{
-                //    apiResponse.status = HttpStatusCode.BadRequest;
-                //    apiResponse.error_code = (int)HttpStatusCode.BadRequest;
-                //    apiResponse.success = false;
-                //}
-                return (T)Convert.ChangeType(response, typeof(T));
+                //eSewaResponse.status = response.status;
+                return (T)Convert.ChangeType(eSewaResponse, typeof(T));
             }
             catch (Exception ex)
             {
