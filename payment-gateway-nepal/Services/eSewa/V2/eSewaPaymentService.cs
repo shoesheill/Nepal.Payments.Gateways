@@ -72,7 +72,7 @@ namespace payment_gateway_nepal.eSewa.V2
                 var (apiUrl, httpMethod) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.eSewa, version, PaymentAction.VerifyPayment, _paymentMode);
                 string url = apiUrl + $"?product_code={eSewaResponse.product_code}&total_amount={eSewaResponse.total_amount}&transaction_uuid={eSewaResponse.transaction_uuid}";
                 eSewaResponse response = await new ApiService(new HttpClient()).GetAsyncResult<eSewaResponse>(url, httpMethod, null, null);
-                //eSewaResponse.status = response.status;
+                eSewaResponse.status = response.status;
                 return (T)Convert.ChangeType(eSewaResponse, typeof(T));
             }
             catch (Exception ex)

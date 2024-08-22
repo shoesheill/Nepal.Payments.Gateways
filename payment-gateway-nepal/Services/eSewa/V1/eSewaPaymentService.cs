@@ -75,16 +75,6 @@ namespace payment_gateway_nepal.eSewa.V1
 
             return (T)Convert.ChangeType(response, typeof(T));
         }
-
-        Task<T> IPaymentService.ProcessPayment<T>(object content, PaymentVersion version)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        Task<T> IPaymentService.VerifyPayment<T>(string content, PaymentVersion version)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }
 

@@ -34,10 +34,11 @@ namespace payment_gateway_nepal
 
         public static class Khalti
         {
-            public const string BaseUrl = "https://api.khalti.com/";
-
+            
             public static class V1
             {
+                public const string BaseUrl = "https://api.khalti.com/";
+                public const string SandboxBaseUrl = "https://a.khalti.com/api/";
                 public const string ProcessPaymentUrl = "v1/payment/process";
                 public const string VerifyPaymentUrl = "v1/payment/verify";
                 public const string PaymentCheckUrl = "v1/payment/check";
@@ -48,9 +49,11 @@ namespace payment_gateway_nepal
 
             public static class V2
             {
-                public const string ProcessPaymentUrl = "v2/payment/process";
-                public const string VerifyPaymentUrl = "v2/payment/verify";
-                public const string PaymentCheckUrl = "v2/payment/check";
+                public const string BaseUrl = "https://api.khalti.com/";
+                public const string SandboxBaseUrl = "https://a.khalti.com/api/";
+                public const string ProcessPaymentUrl = "epayment/initiate/";
+                public const string VerifyPaymentUrl = "epayment/lookup/";
+                public const string PaymentCheckUrl = "epayment/lookup/";
                 public static readonly HttpMethod ProcessPaymentMethod = HttpMethod.Post;
                 public static readonly HttpMethod VerifyPaymentMethod = HttpMethod.Get;
                 public static readonly HttpMethod PaymentCheckMethod = HttpMethod.Get;

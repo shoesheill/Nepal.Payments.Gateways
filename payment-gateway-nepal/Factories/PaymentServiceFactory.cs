@@ -8,7 +8,10 @@ namespace payment_gateway_nepal
         {
             return (paymentMethod, version) switch
             {
+                (PaymentMethod.eSewa, PaymentVersion.v1) => new payment_gateway_nepal.eSewa.V1.eSewaPaymentService(secretKey, paymentMode),
                 (PaymentMethod.eSewa, PaymentVersion.v2) => new payment_gateway_nepal.eSewa.V2.eSewaPaymentService(secretKey, paymentMode),
+                (PaymentMethod.Khalti, PaymentVersion.v1) => new payment_gateway_nepal.khalti.V1.khaltiPaymentService(secretKey, paymentMode),
+                (PaymentMethod.Khalti, PaymentVersion.v2) => new payment_gateway_nepal.khalti.V2.khaltiPaymentService(secretKey, paymentMode),
                 _ => throw new ArgumentException("Invalid gateway or version", nameof(paymentMethod)),
             };
         }

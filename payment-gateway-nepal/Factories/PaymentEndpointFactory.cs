@@ -13,6 +13,7 @@ namespace payment_gateway_nepal
                 (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Production, PaymentAction.VerifyPayment) => (ApiEndPoints.eSewa.V2.BaseUrl + ApiEndPoints.eSewa.V2.VerifyPaymentMethod, ApiEndPoints.eSewa.V2.VerifyPaymentMethod),
                 (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Sandbox, PaymentAction.ProcessPayment) => (ApiEndPoints.eSewa.V2.SandboxBaseUrl + ApiEndPoints.eSewa.V2.ProcessPaymentUrl, ApiEndPoints.eSewa.V2.ProcessPaymentMethod),
                 (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Sandbox, PaymentAction.VerifyPayment) => (ApiEndPoints.eSewa.V2.SandboxBaseUrl + ApiEndPoints.eSewa.V2.VerifyPaymentUrl, ApiEndPoints.eSewa.V2.VerifyPaymentMethod),
+                (PaymentMethod.Khalti,PaymentVersion.v2, PaymentMode.Sandbox,PaymentAction.ProcessPayment)=> (ApiEndPoints.Khalti.V2.SandboxBaseUrl+ApiEndPoints.Khalti.V2.ProcessPaymentUrl, ApiEndPoints.Khalti.V2.ProcessPaymentMethod),
                 _ => throw new ArgumentException("Invalid gateway, version, or action", nameof(paymentMethod)),
             };
         }
