@@ -17,7 +17,7 @@ namespace payment_gateway_nepal
             _httpClient = httpClient;
         }
 
-        public async Task<T> GetAsyncResult<T>(string apiPath, HttpMethod httpMethod, Dictionary<string, string> headerParam, Dictionary<string, string> keyValuePairs, object? requestBody = null)
+        public async Task<T> GetAsyncResult<T>(string apiPath, HttpMethod httpMethod, Dictionary<string, string> headerParam, Dictionary<string, string> keyValuePairs, object requestBody = null)
         {
             try
             {

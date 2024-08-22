@@ -5,17 +5,37 @@ namespace payment_gateway_nepal
 {
     public class PaymentEndpointFactory
     {
-        public static (string apiUrl, HttpMethod httpMethod) GetEndpoint(PaymentMethod paymentMethod, PaymentVersion version, PaymentAction paymentAction, PaymentMode paymentMode)
+        public static (string, HttpMethod) GetEndpoint(PaymentMethod paymentMethod, PaymentVersion version, PaymentAction paymentAction, PaymentMode paymentMode)
         {
-            return (paymentMethod, version, paymentMode, paymentAction) switch
+
+
+            if (paymentMethod == PaymentMethod.eSewa)
             {
-                (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Production, PaymentAction.ProcessPayment) => (ApiEndPoints.eSewa.V2.BaseUrl + ApiEndPoints.eSewa.V2.ProcessPaymentUrl, ApiEndPoints.eSewa.V2.ProcessPaymentMethod),
-                (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Production, PaymentAction.VerifyPayment) => (ApiEndPoints.eSewa.V2.BaseUrl + ApiEndPoints.eSewa.V2.VerifyPaymentMethod, ApiEndPoints.eSewa.V2.VerifyPaymentMethod),
-                (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Sandbox, PaymentAction.ProcessPayment) => (ApiEndPoints.eSewa.V2.SandboxBaseUrl + ApiEndPoints.eSewa.V2.ProcessPaymentUrl, ApiEndPoints.eSewa.V2.ProcessPaymentMethod),
-                (PaymentMethod.eSewa, PaymentVersion.v2, PaymentMode.Sandbox, PaymentAction.VerifyPayment) => (ApiEndPoints.eSewa.V2.SandboxBaseUrl + ApiEndPoints.eSewa.V2.VerifyPaymentUrl, ApiEndPoints.eSewa.V2.VerifyPaymentMethod),
-                (PaymentMethod.Khalti,PaymentVersion.v2, PaymentMode.Sandbox,PaymentAction.ProcessPayment)=> (ApiEndPoints.Khalti.V2.SandboxBaseUrl+ApiEndPoints.Khalti.V2.ProcessPaymentUrl, ApiEndPoints.Khalti.V2.ProcessPaymentMethod),
-                _ => throw new ArgumentException("Invalid gateway, version, or action", nameof(paymentMethod)),
-            };
+                string baseUrl = "";
+                string methodName = "";
+                HttpMethod httpMethod = HttpMethod.Get;
+                if (version == PaymentVersion.v2)
+                {
+                    baseUrl = (paymentMode == PaymentMode.Production) ? ApiEndPoints.eSewa.V2.BaseUrl : ApiEndPoints.eSewa.V2.SandboxBaseUrl;
+                    methodName = (paymentAction == PaymentAction.ProcessPayment) ? (ApiEndPoints.eSewa.V2.ProcessPaymentUrl) : (ApiEndPoints.eSewa.V2.VerifyPaymentUrl);
+                    httpMethod = paymentAction == PaymentAction.ProcessPayment ? ApiEndPoints.eSewa.V2.ProcessPaymentMethod : ApiEndPoints.eSewa.V2.VerifyPaymentMethod;
+                    return (baseUrl + methodName, httpMethod);
+                }
+            }
+            else if (paymentMethod == PaymentMethod.Khalti)
+            {
+                string baseUrl = "";
+                string methodName = "";
+                HttpMethod httpMethod = HttpMethod.Get;
+                if (version == PaymentVersion.v2)
+                {
+                    baseUrl = (paymentMode == PaymentMode.Production) ? ApiEndPoints.Khalti.V2.BaseUrl : ApiEndPoints.Khalti.V2.SandboxBaseUrl;
+                    methodName = (paymentAction == PaymentAction.ProcessPayment) ? (ApiEndPoints.Khalti.V2.ProcessPaymentUrl) : (ApiEndPoints.Khalti.V2.VerifyPaymentUrl);
+                    httpMethod = paymentAction == PaymentAction.ProcessPayment ? ApiEndPoints.Khalti.V2.ProcessPaymentMethod : ApiEndPoints.Khalti.V2.VerifyPaymentMethod;
+                    return (baseUrl + methodName, httpMethod);
+                }
+            }
+            return (string.Empty, HttpMethod.Get);
         }
     }
 }
