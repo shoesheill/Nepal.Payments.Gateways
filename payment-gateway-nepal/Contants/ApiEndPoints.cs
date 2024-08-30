@@ -43,7 +43,7 @@ namespace payment_gateway_nepal
                 public const string VerifyPaymentUrl = "v1/payment/verify";
                 public const string PaymentCheckUrl = "v1/payment/check";
                 public static readonly HttpMethod ProcessPaymentMethod = HttpMethod.Post;
-                public static readonly HttpMethod VerifyPaymentMethod = HttpMethod.Get;
+                public static readonly HttpMethod VerifyPaymentMethod = HttpMethod.Post;
                 public static readonly HttpMethod PaymentCheckMethod = HttpMethod.Get;
             }
 
@@ -55,7 +55,7 @@ namespace payment_gateway_nepal
                 public const string VerifyPaymentUrl = "epayment/lookup/";
                 public const string PaymentCheckUrl = "epayment/lookup/";
                 public static readonly HttpMethod ProcessPaymentMethod = HttpMethod.Post;
-                public static readonly HttpMethod VerifyPaymentMethod = HttpMethod.Get;
+                public static readonly HttpMethod VerifyPaymentMethod = HttpMethod.Post;
                 public static readonly HttpMethod PaymentCheckMethod = HttpMethod.Get;
             }
         }
