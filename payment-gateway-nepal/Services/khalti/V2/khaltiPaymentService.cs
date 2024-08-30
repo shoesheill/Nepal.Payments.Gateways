@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using payment_gateway_nepal.Models;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -24,8 +25,8 @@ namespace payment_gateway_nepal.khalti.V2
             var (apiUrl, httpMethod) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.Khalti, version, PaymentAction.ProcessPayment, _paymentMode);
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("Authorization", "key " + _secretKey);
-            string json = JsonConvert.SerializeObject(content);
-            var response = await new ApiService(new HttpClient()).GetAsyncResult<string>(apiUrl, httpMethod, headers, null, json);
+           // string json = JsonConvert.SerializeObject(content);
+            var response = await new ApiService(new HttpClient()).GetAsyncResult<k_init_response>(apiUrl, httpMethod, headers, null, content);
             ApiResponse apiResponse = new ApiResponse { data = response };
             return (T)Convert.ChangeType(apiResponse, typeof(T));
         }
