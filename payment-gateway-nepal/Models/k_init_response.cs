@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace payment_gateway_nepal.Models
+namespace payment_gateway_nepal
 {
 	public class k_init_response
 	{
