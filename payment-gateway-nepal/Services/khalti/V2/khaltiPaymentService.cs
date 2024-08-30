@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-using payment_gateway_nepal.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
