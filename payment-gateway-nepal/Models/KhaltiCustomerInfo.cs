@@ -4,7 +4,7 @@ using System.Text;
 
 namespace payment_gateway_nepal
 {
-    public class k_customer_info
+    public class KhaltiCustomerInfo
     {
         public string name { get; set; }
 

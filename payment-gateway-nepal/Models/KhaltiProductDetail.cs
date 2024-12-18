@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace payment_gateway_nepal
+﻿namespace payment_gateway_nepal
 {
-    public class k_product_detail
+    public class KhaltiProductDetail
     {
         public string identity { get; set; }
 

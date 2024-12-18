@@ -4,7 +4,7 @@ using System.Text;
 
 namespace payment_gateway_nepal
 {
-	public class k_init_response
+	public class KhaltiInitResponse
 	{
         public string pidx { get; set; }
         public string payment_url { get; set; }

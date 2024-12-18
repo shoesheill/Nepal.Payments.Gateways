@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace payment_gateway_nepal.khalti.V1
 {
-    internal class khaltiPaymentService : IPaymentService
+    internal class KhaltiPaymentService : IPaymentService
     {
         private readonly string _secretKey;
         private readonly PaymentMode _paymentMode;
 
 
-        public khaltiPaymentService(string secretKey, PaymentMode paymentMode)
+        public KhaltiPaymentService(string secretKey, PaymentMode paymentMode)
         {
             _secretKey = secretKey;
             _paymentMode = paymentMode;
