@@ -16,7 +16,7 @@ namespace payment_gateway_nepal.khalti.V2
 			_secretKey = secretKey;
 			_paymentMode = paymentMode;
 		}
-		public async Task<T> ProcessPayment<T>(object content, PaymentVersion version)
+		public async Task<T> InitiatePaymentAsync<T>(object content, PaymentVersion version)
 		{
 			var (apiUrl, httpMethod) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.Khalti, version, PaymentAction.ProcessPayment, _paymentMode);
 			Dictionary<string, string> headers = new Dictionary<string, string>();
@@ -27,7 +27,7 @@ namespace payment_gateway_nepal.khalti.V2
 			return (T)Convert.ChangeType(apiResponse, typeof(T));
 		}
 
-		public async Task<T> VerifyPayment<T>(string content, PaymentVersion version)
+		public async Task<T> VerifyPaymentAsync<T>(string content, PaymentVersion version)
 		{
 			var (apiUrl, httpMethod) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.Khalti, version, PaymentAction.VerifyPayment, _paymentMode);
 			Dictionary<string, string> headers = new Dictionary<string, string>();

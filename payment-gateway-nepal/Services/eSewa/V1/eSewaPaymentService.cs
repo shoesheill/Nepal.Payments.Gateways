@@ -21,7 +21,7 @@ namespace payment_gateway_nepal.eSewa.V1
             _paymentMode = paymentMode;
         }
 
-        public async Task<T> ProcessPayment<T>(object content, PaymentVersion version)
+        public async Task<T> InitiatePaymentAsync<T>(object content, PaymentVersion version)
         {
             var json = JsonConvert.SerializeObject(content);
             eSewaRequest request = JsonConvert.DeserializeObject<eSewaRequest>(json) ?? throw new ArgumentException("Invalid content type", nameof(content));
@@ -58,7 +58,7 @@ namespace payment_gateway_nepal.eSewa.V1
             return (T)Convert.ChangeType(apiResponse, typeof(T));
         }
 
-        public async Task<T> VerifyPayment<T>(string encodedCode, PaymentVersion version)
+        public async Task<T> VerifyPaymentAsync<T>(string encodedCode, PaymentVersion version)
         {
             // Decode the Base64 string to binary data
             byte[] binaryData = Convert.FromBase64String(encodedCode);

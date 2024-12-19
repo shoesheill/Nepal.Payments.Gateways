@@ -14,12 +14,12 @@ namespace payment_gateway_nepal.khalti.V1
             _secretKey = secretKey;
             _paymentMode = paymentMode;
         }
-        public Task<T> ProcessPayment<T>(object content, PaymentVersion version)
+        public Task<T> InitiatePaymentAsync<T>(object content, PaymentVersion version)
         {
             throw new NotImplementedException();
         }
 
-        public Task<T> VerifyPayment<T>(string content, PaymentVersion version)
+        public Task<T> VerifyPaymentAsync<T>(string content, PaymentVersion version)
         {
             throw new NotImplementedException();
         }
