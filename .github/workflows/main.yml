@@ -36,6 +36,10 @@ jobs:
     - name: Run tests
       run: dotnet test $SOLUTION --configuration $BUILD_CONFIG --no-restore --verbosity normal
 
+    - name: Download README.md
+      run: |
+        curl -o README.md https://raw.githubusercontent.com/shoesheill/khalti-payment-gateway-demo/master/README.md
+
     - name: Pack NuGet package
       run: dotnet pack $SOLUTION --configuration $BUILD_CONFIG --no-build --output ./nupkg
 
