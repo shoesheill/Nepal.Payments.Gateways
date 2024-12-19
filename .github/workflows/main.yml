@@ -39,6 +39,13 @@ jobs:
     - name: Download README.md
       run: |
         curl -o README.md https://raw.githubusercontent.com/shoesheill/khalti-payment-gateway-demo/master/README.md
+      # Ensure README.md is placed in the root directory
+
+    - name: Verify README.md exists
+      run: |
+        if [ ! -f README.md ]; then
+          echo "README.md not found!" && exit 1
+        fi
 
     - name: Pack NuGet package
       run: dotnet pack $SOLUTION --configuration $BUILD_CONFIG --no-build --output ./nupkg
