@@ -15,13 +15,13 @@ namespace payment_gateway_nepal
 			_version = paymentVersion;
 			_mode = paymentMode;
 		}
-		public async Task<T> InitiatePayment<T>(object content)
+		public async Task<T> InitiatePaymentAsync<T>(object content)
 		{
 			var paymentService = PaymentServiceFactory.GetPaymentService(_method, _version, _secretKey, _mode);
 
 			return await paymentService.InitiatePaymentAsync<T>(content, _version);
 		}
-		public async Task<T> VerifyPayment<T>(string content)
+		public async Task<T> VerifyPaymentAsync<T>(string content)
 		{
 			var paymentService = PaymentServiceFactory.GetPaymentService(_method, _version, _secretKey, _mode);
 
