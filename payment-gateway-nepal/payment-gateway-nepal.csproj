@@ -11,7 +11,7 @@
     <RepositoryUrl>https://github.com/shoesheill/payment-gateway-nepal.git</RepositoryUrl>
     <PackageProjectUrl>https://kpg.azurewebsites.net/</PackageProjectUrl>
     <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
-    <PackageReadmeFile>https://raw.githubusercontent.com/shoesheill/khalti-payment-gateway-demo/master/README.md</PackageReadmeFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>plugin.web.eSewa.and.Khalti</PackageId>
     <Version>1.0.9</Version>
   </PropertyGroup>
