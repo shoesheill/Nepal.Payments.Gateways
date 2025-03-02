@@ -1,22 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup> 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <LangVersion>10.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
     <RootNamespace>payment_gateway_nepal</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Sushil Shrestha</Authors>
     <Description>This NuGet package provides a complete solution for integrating payment gateways commonly used in Nepal. It includes built-in support for eSewa and Khalti, making it easy to incorporate these popular payment methods into your .NET applications.</Description>
     <PackageTags>nepali payment gateway; esewa; esewa v2; khalti ; khalti kpg v2;</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/shoesheill/payment-gateway-nepal.git</RepositoryUrl>
-    <PackageProjectUrl>https://kpg.azurewebsites.net/</PackageProjectUrl>
     <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
     <PackageId>plugin.web.eSewa.and.Khalti</PackageId>
-    <Version>1.0.10</Version>
+    <Version>1.0.11</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)/../README.md" Pack="true" PackagePath="\"/>
+    <!-- or if README is in the same directory as the project file -->
+    <!-- <None Include="README.md" Pack="true" PackagePath="\" /> -->
   </ItemGroup>
 
 </Project>
