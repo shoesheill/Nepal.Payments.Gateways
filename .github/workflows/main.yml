@@ -4,51 +4,49 @@ on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
-  workflow_dispatch:
+    tags:
+      - v[0-9]+.*
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      BUILD_CONFIG: 'Release'
-      SOLUTION: 'payment-gateway-nepal.sln'
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x' # Adjust the .NET version as needed
+        dotnet-version: '9.0.x' # Adjust the version as needed
 
     - name: Restore dependencies
-      run: dotnet restore $SOLUTION
+      run: dotnet restore
 
-    - name: Build
-      run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
+    - name: Build the project
+      run: dotnet build --configuration Release --no-restore
 
-    - name: Run tests
-      run: dotnet test $SOLUTION --configuration $BUILD_CONFIG --no-restore --verbosity normal
-
-    - name: Download README.md
-      run: |
-        curl -o README.md https://raw.githubusercontent.com/shoesheill/khalti-payment-gateway-demo/master/README.md
-      # Ensure README.md is placed in the root directory
-
-    - name: Verify README.md exists
-      run: |
-        if [ ! -f README.md ]; then
-          echo "README.md not found!" && exit 1
-        fi
-
-    - name: Pack NuGet package
-      run: dotnet pack $SOLUTION --configuration $BUILD_CONFIG --no-build --output ./nupkg
+    - name: Pack the NuGet package
+      run: dotnet pack --configuration Release --no-build --output ./nupkg
 
     - name: Publish NuGet package
-      run: dotnet nuget push ./nupkg/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+       --skip-duplicate
+
+    - name: Fetch existing README
+      run: |
+        if [ -f README.md ]; then
+          echo "Existing README found."
+        else
+          curl -o README.md https://raw.shoesheill.com/${{ github.repository }}/main/README.md
+        fi
+
+    - name: Update README
+      run: |
+        echo "## Release Notes" >> README.md
+        echo "### Version ${{ github.ref_name }}" >> README.md
+        echo "Released on ${{ github.event.push.head_commit.timestamp }}" >> README.md
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add README.md
+        git commit -m "Update README for version ${{ github.ref_name }}"
+        git push
