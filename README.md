@@ -220,3 +220,6 @@ private async Task<ActionResult> VerifyPayment(string pidx)
 
 - [eSewa Developer Guide](https://developer.esewa.com.np/pages/Introduction)
 - [Khalti Developer Guide](https://docs.khalti.com/khalti-epayment/)
+## Release Notes
+### Version master
+Released on 
