@@ -20,7 +20,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Sushil Shrestha</Authors>
     <Description>A comprehensive .NET library for integrating popular Nepali payment gateways including eSewa and Khalti. This package provides a unified interface for processing payments, verifying transactions, and handling different payment gateway versions with support for both sandbox and production environments.</Description>
-    <PackageTags>nepal; payment; gateway; esewa; khalti; nepali; fintech; payment-processing</PackageTags>
+    <PackageTags>nepal; payment; gateway; esewa; khalti; nepali; fintech; fonepay; fonepay dynamic qr; payment-processing</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReleaseNotes>Enhanced package with improved naming conventions, comprehensive documentation, and better error handling.</PackageReleaseNotes>
     <PackageId>Nepal.Payments.Gateways</PackageId>
@@ -37,8 +37,10 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="../docs/README.md" Pack="true" PackagePath="README.md"/>
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)/../README.md" Pack="true" PackagePath="\"/>
+        <!-- or if README is in the same directory as the project file -->
+        <!-- <None Include="README.md" Pack="true" PackagePath="\" /> -->
+    </ItemGroup>
 
 </Project>
