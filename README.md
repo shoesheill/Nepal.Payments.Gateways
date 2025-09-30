@@ -32,9 +32,7 @@ var paymentManager = new PaymentManager(
 
 📚 **Complete documentation is available in the [`docs/`](docs/) folder:**
 
-- **[Integration Guide](INTEGRATION_GUIDE.md)** - Step-by-step integration instructions
-- **[Changelog](CHANGELOG.md)** - Version history and updates
-- **[Contributing](CONTRIBUTING.md)** - How to contribute to this project
+- **[Integration Guide](docs/INTEGRATION_GUIDE.md)** - Step-by-step integration instructions
 
 ## Supported Gateways
 
