@@ -98,7 +98,7 @@ namespace Nepal.Payments.Gateways.Services.Esewa.V1
                 switch (trimmedField.ToLower())
                 {
                     case "total_amount":
-                        messageParts.Add($"total_amount={request.TotalAmount:F2}");
+                        messageParts.Add($"total_amount={request.TotalAmount}");
                         break;
                     case "transaction_uuid":
                         messageParts.Add($"transaction_uuid={request.TransactionUuid}");

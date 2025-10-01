@@ -24,8 +24,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReleaseNotes>Enhanced package with improved naming conventions, comprehensive documentation, and better error handling.</PackageReleaseNotes>
     <PackageId>Nepal.Payments.Gateways</PackageId>
-    <Version>1.0.0</Version>
-    <PackageProjectUrl>https://github.com/shoesheill/Nepal.Payments.Gateways</PackageProjectUrl>
+    <Version>1.0.1</Version>
+    <PackageProjectUrl>https://payments-demo.nepalidev.com.np</PackageProjectUrl>
     <RepositoryUrl>https://github.com/shoesheill/Nepal.Payments.Gateways</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <Copyright>Copyright © 2025</Copyright>

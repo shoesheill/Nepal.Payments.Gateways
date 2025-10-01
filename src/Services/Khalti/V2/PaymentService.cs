@@ -32,7 +32,7 @@ namespace Nepal.Payments.Gateways.Services.Khalti.V2
                 Dictionary<string, string> headers = new Dictionary<string, string>();
                 headers.Add("Authorization", "key " + _secretKey);
                 var response = await new ApiService(new HttpClient()).GetAsyncResult<RequestResponse>(apiUrl, httpMethod, headers, null, content);
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Data = response,
                     Success = true,
@@ -41,7 +41,7 @@ namespace Nepal.Payments.Gateways.Services.Khalti.V2
             }
             catch(Exception ex)
             {
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Success = false,
                     Message = ex.Message
@@ -60,8 +60,8 @@ namespace Nepal.Payments.Gateways.Services.Khalti.V2
                 {
                     { "pidx", content }
                 };
-                var response = await new ApiService(new HttpClient()).GetAsyncResult<PaymentResponse>(apiUrl, httpMethod, headers, formContent, null);
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                var response = await new ApiService(new HttpClient()).GetAsyncResult<Models.Khalti.PaymentResponse>(apiUrl, httpMethod, headers, formContent, null);
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Data = response,
                     Success = true,
@@ -70,7 +70,7 @@ namespace Nepal.Payments.Gateways.Services.Khalti.V2
             }
             catch(Exception ex)
             {
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Success = false,
                     Message = ex.Message

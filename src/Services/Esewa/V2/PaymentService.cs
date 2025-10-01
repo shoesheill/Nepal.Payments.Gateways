@@ -27,49 +27,34 @@ namespace Nepal.Payments.Gateways.Services.Esewa.V2
         public async Task<T> InitiatePaymentAsync<T>(object content, PaymentVersion version)
         {
             if (!(content is PaymentRequest request))
-                throw new ArgumentException("Content must be of type EsewaRequest", nameof(content));
+                throw new ArgumentException("Content must be of type PaymentRequest", nameof(content));
 
             try
             {
-                // Generate signature for eSewa V2
                 string signature = GenerateEsewaV2Signature(request);
                 request.Signature = signature;
-                // var paymentData = new PaymentRequest
-                // {
-                //     Amount = request.Amount.ToString("F2"),
-                //     TaxAmount = request.TaxAmount.ToString("F2"),
-                //     TotalAmount = request.TotalAmount.ToString("F2"),
-                //     TransactionUuid = request.TransactionUuid,
-                //     ProductCode = request.ProductCode,
-                //     ProductServiceCharge = request.ProductServiceCharge.ToString("F2"),
-                //     ProductDeliveryCharge = request.ProductDeliveryCharge.ToString("F2"),
-                //     SuccessUrl = request.SuccessUrl,
-                //     FailureUrl = request.FailureUrl,
-                //     SignedFieldNames = request.SignedFieldNames,
-                //     Signature = signature
-                // };
                 string baseUrl = _paymentMode == PaymentMode.Sandbox 
                     ? ApiEndpoints.Esewa.V2.SandboxBaseUrl 
                     : ApiEndpoints.Esewa.V2.BaseUrl;
                 var json = JsonConvert.SerializeObject(request);
                 string endpoint = $"{baseUrl}{ApiEndpoints.Esewa.V2.ProcessPaymentUrl}";
                  var keyValuePairs = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-                var response = await _apiService.GetAsyncResult<T>(
+                var response = await _apiService.GetAsyncResult<string>(
                     endpoint,
                     ApiEndpoints.Esewa.V2.ProcessPaymentMethod,
                     keyValuePairs: keyValuePairs
                 );
 
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
-                    Data = new RequestResponse{PaymentUrl = response.ToString()??""},
+                    Data = new RequestResponse{PaymentUrl = response ?? ""},
                     Success = true,
                     Message = "Payment initiated successfully"
                 });
             }
             catch (Exception ex)
             {
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Success = false,
                     Message = ex.Message
@@ -97,7 +82,7 @@ namespace Nepal.Payments.Gateways.Services.Esewa.V2
                 {
                     throw new InvalidOperationException("Invalid signature in eSewa V2 response");
                 }
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Data = transactionData,
                     Success = true,
@@ -106,7 +91,7 @@ namespace Nepal.Payments.Gateways.Services.Esewa.V2
             }
             catch (Exception ex)
             {
-                return ResponseConverter.ConvertTo<T>(new ApiResponse
+                return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
                     Success = false,
                     Message = ex.Message
@@ -125,7 +110,7 @@ namespace Nepal.Payments.Gateways.Services.Esewa.V2
                 switch (trimmedField.ToLower())
                 {
                     case "total_amount":
-                        messageParts.Add($"total_amount={request.TotalAmount:F2}");
+                        messageParts.Add($"total_amount={request.TotalAmount}");
                         break;
                     case "transaction_uuid":
                         messageParts.Add($"transaction_uuid={request.TransactionUuid}");
