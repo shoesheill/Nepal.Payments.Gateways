@@ -1,22 +1,12 @@
 ﻿using System;
 using System.Net.Http;
+using Nepal.Payments.Gateways.Constants;
+using Nepal.Payments.Gateways.Enum;
 
-namespace Nepal.Payments.Gateways
+namespace Nepal.Payments.Gateways.Factories
 {
-    /// <summary>
-    /// Factory class for creating payment gateway endpoints based on method, version, action, and mode.
-    /// </summary>
     public static class PaymentEndpointFactory
     {
-        /// <summary>
-        /// Gets the appropriate API endpoint URL and HTTP method for the specified payment parameters.
-        /// </summary>
-        /// <param name="paymentMethod">The payment gateway method.</param>
-        /// <param name="version">The API version.</param>
-        /// <param name="paymentAction">The payment action to perform.</param>
-        /// <param name="paymentMode">The payment mode (sandbox or production).</param>
-        /// <returns>A tuple containing the API URL and HTTP method.</returns>
-        /// <exception cref="ArgumentException">Thrown when the combination of parameters is not supported.</exception>
         public static (string apiUrl, HttpMethod httpMethod) GetEndpoint(PaymentMethod paymentMethod, PaymentVersion version, PaymentAction paymentAction, PaymentMode paymentMode)
         {
             return (paymentMethod, version, paymentMode, paymentAction) switch

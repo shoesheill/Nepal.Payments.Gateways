@@ -1,4 +1,4 @@
-﻿namespace Nepal.Payments.Gateways
+﻿namespace Nepal.Payments.Gateways.Models
 {
     public class PaymentResult
     {

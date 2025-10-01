@@ -1,6 +1,9 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Nepal.Payments.Gateways.Enum;
+using Nepal.Payments.Gateways.Helper.ApiCall;
+using Nepal.Payments.Gateways.Interfaces;
 
 namespace Nepal.Payments.Gateways.Services.Khalti.V1
 {
@@ -8,18 +11,18 @@ namespace Nepal.Payments.Gateways.Services.Khalti.V1
     /// Khalti payment service implementation for API version 1.
     /// Note: V1 is not fully implemented by Khalti, this is a placeholder.
     /// </summary>
-    public class KhaltiPaymentService : IPaymentService
+    public class PaymentService : IPaymentService
     {
         private readonly string _secretKey;
         private readonly PaymentMode _paymentMode;
         private readonly ApiService _apiService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KhaltiPaymentService"/> class.
+        /// Initializes a new instance of the <see cref="PaymentService"/> class.
         /// </summary>
         /// <param name="secretKey">The secret key for Khalti.</param>
         /// <param name="paymentMode">The payment mode (sandbox or production).</param>
-        public KhaltiPaymentService(string secretKey, PaymentMode paymentMode)
+        public PaymentService(string secretKey, PaymentMode paymentMode)
         {
             _secretKey = secretKey ?? throw new ArgumentNullException(nameof(secretKey));
             _paymentMode = paymentMode;

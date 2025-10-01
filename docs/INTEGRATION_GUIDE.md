@@ -5,12 +5,14 @@ This comprehensive guide provides detailed instructions for integrating eSewa an
 ## Table of Contents
 
 1. [Quick Setup](#quick-setup)
-2. [eSewa Integration](#esewa-integration)
-3. [Khalti Integration](#khalti-integration)
-4. [Test Credentials](#test-credentials)
-5. [Error Handling](#error-handling)
-6. [Best Practices](#best-practices)
-7. [Troubleshooting](#troubleshooting)
+2. [Architecture Overview](#architecture-overview)
+3. [eSewa Integration](#esewa-integration)
+4. [Khalti Integration](#khalti-integration)
+5. [Response Handling](#response-handling)
+6. [Test Credentials](#test-credentials)
+7. [Error Handling](#error-handling)
+8. [Best Practices](#best-practices)
+9. [Troubleshooting](#troubleshooting)
 
 ## Quick Setup
 
@@ -24,6 +26,9 @@ dotnet add package Nepal.Payments.Gateways
 
 ```csharp
 using Nepal.Payments.Gateways;
+using Nepal.Payments.Gateways.Models;
+using Nepal.Payments.Gateways.Enum;
+using Newtonsoft.Json;
 
 // Configure your payment manager
 var paymentManager = new PaymentManager(
@@ -33,6 +38,37 @@ var paymentManager = new PaymentManager(
     secretKey: "your-secret-key-here"
 );
 ```
+
+## Architecture Overview
+
+### Current Implementation Structure
+
+The library follows a factory pattern with service abstraction:
+
+```
+PaymentManager
+    ↓
+PaymentServiceFactory
+    ↓
+IPaymentService (V1/V2 implementations)
+    ↓
+PaymentEndpointFactory → ApiService → HTTP Client
+```
+
+### Key Components
+
+- **PaymentManager**: Main entry point for all payment operations
+- **PaymentServiceFactory**: Creates appropriate service instances based on method and version
+- **IPaymentService**: Interface implemented by eSewa and Khalti services
+- **PaymentEndpointFactory**: Manages API endpoints for different environments
+- **ResponseConverter**: Handles safe type conversions
+- **ApiService**: HTTP client wrapper with error handling
+
+### Supported Versions
+
+- **eSewa**: V1, V2
+- **Khalti**: V1, V2
+- **Environments**: Sandbox, Production
 
 ## eSewa Integration
 
@@ -48,6 +84,11 @@ private readonly string eSewa_MerchantId = "EPAYTEST";
 #### 1. Payment Initialization
 
 ```csharp
+using Nepal.Payments.Gateways;
+using Nepal.Payments.Gateways.Models;
+using Nepal.Payments.Gateways.Enum;
+using Nepal.Payments.Gateways.Models.eSewa;
+
 public async Task<IActionResult> PayWitheSewa()
 {
     PaymentManager paymentManager = new PaymentManager(
@@ -59,21 +100,21 @@ public async Task<IActionResult> PayWitheSewa()
 
     string currentUrl = new Uri($"{Request.Scheme}://{Request.Host}").AbsoluteUri;
 
-    var request = new EsewaRequest
+    var request = new PaymentRequest
     {
-        Amount = 100,
-        TaxAmount = 10,
-        TotalAmount = 110,
+        Amount = "100",
+        TaxAmount = "10",
+        TotalAmount = "110",
         TransactionUuid = "bk-" + new Random().Next(10000, 100000).ToString(),
         ProductCode = "EPAYTEST",
-        ProductServiceCharge = 0,
-        ProductDeliveryCharge = 0,
+        ProductServiceCharge = "0",
+        ProductDeliveryCharge = "0",
         SuccessUrl = currentUrl,
         FailureUrl = currentUrl,
         SignedFieldNames = "total_amount,transaction_uuid,product_code"
     };
 
-    var response = await paymentManager.InitiatePaymentAsync<ApiResponse>(request);
+    var response = await paymentManager.InitiatePaymentAsync<PaymentResult>(request);
     return Redirect(response.Data.ToString());
 }
 ```
@@ -81,6 +122,11 @@ public async Task<IActionResult> PayWitheSewa()
 #### 2. Payment Verification
 
 ```csharp
+using Nepal.Payments.Gateways;
+using Nepal.Payments.Gateways.Models;
+using Nepal.Payments.Gateways.Enum;
+using Nepal.Payments.Gateways.Models.eSewa;
+
 public async Task<IActionResult> VerifyEsewaPayment(string data)
 {
     PaymentManager paymentManager = new PaymentManager(
@@ -90,7 +136,7 @@ public async Task<IActionResult> VerifyEsewaPayment(string data)
         eSewa_SecretKey
     );
 
-    var response = await paymentManager.VerifyPaymentAsync<EsewaResponse>(data);
+    var response = await paymentManager.VerifyPaymentAsync<PaymentResponse>(data);
 
     if (!string.IsNullOrEmpty(response.Status) && 
         string.Equals(response.Status, "complete", StringComparison.OrdinalIgnoreCase))
@@ -105,24 +151,6 @@ public async Task<IActionResult> VerifyEsewaPayment(string data)
 }
 ```
 
-### eSewa Request Model
-
-```csharp
-public class EsewaRequest
-{
-    public decimal Amount { get; set; }                    // Base amount
-    public decimal TaxAmount { get; set; }                 // Tax amount
-    public decimal TotalAmount { get; set; }               // Total amount (Amount + Tax + Charges)
-    public string TransactionUuid { get; set; }            // Unique transaction ID
-    public string ProductCode { get; set; }                // Product/service code
-    public decimal ProductServiceCharge { get; set; }      // Service charge
-    public decimal ProductDeliveryCharge { get; set; }     // Delivery charge
-    public string SuccessUrl { get; set; }                 // Success callback URL
-    public string FailureUrl { get; set; }                 // Failure callback URL
-    public string SignedFieldNames { get; set; }           // Fields to sign
-    public string Signature { get; set; }                  // Generated signature
-}
-```
 
 ## Khalti Integration
 
@@ -137,6 +165,12 @@ private readonly string Khalti_SecretKey = "live_secret_key_68791341fdd94846a146
 #### 1. Payment Initialization
 
 ```csharp
+using Nepal.Payments.Gateways;
+using Nepal.Payments.Gateways.Models;
+using Nepal.Payments.Gateways.Enum;
+using Nepal.Payments.Gateways.Models.Khalti;
+using Newtonsoft.Json;
+
 public async Task<ActionResult> PayWithKhalti()
 {
     string currentUrl = new Uri($"{Request.Scheme}://{Request.Host}").AbsoluteUri;
@@ -178,8 +212,8 @@ public async Task<ActionResult> PayWithKhalti()
         }
     };
 
-    var response = await paymentManager.InitiatePaymentAsync<ApiResponse>(request);
-    var khaltiInitResponse = JsonConvert.DeserializeObject<KhaltiInitResponse>(JsonConvert.SerializeObject(response.Data));
+    var response = await paymentManager.InitiatePaymentAsync<PaymentResult>(request);
+    var khaltiInitResponse = JsonConvert.DeserializeObject<RequestResponse>(JsonConvert.SerializeObject(response.Data));
     return Redirect(khaltiInitResponse.PaymentUrl);
 }
 ```
@@ -187,6 +221,10 @@ public async Task<ActionResult> PayWithKhalti()
 #### 2. Payment Verification
 
 ```csharp
+using Nepal.Payments.Gateways;
+using Nepal.Payments.Gateways.Models;
+using Nepal.Payments.Gateways.Enum;
+
 private async Task<ActionResult> VerifyKhaltiPayment(string pidx)
 {
     PaymentManager paymentManager = new PaymentManager(
@@ -196,45 +234,20 @@ private async Task<ActionResult> VerifyKhaltiPayment(string pidx)
         Khalti_SecretKey
     );
 
-    var response = await paymentManager.VerifyPaymentAsync<KhaltiResponse>(pidx);
+    var response = await paymentManager.VerifyPaymentAsync<PaymentResult>(pidx);
 
-    if (response != null && string.Equals(response.Status, "completed", StringComparison.OrdinalIgnoreCase))
+    if (response.Success && response.Data != null)
     {
-        ViewBag.Message = $"Payment with Khalti completed successfully with pidx: {response.Pidx} and amount: {response.TotalAmount}";
+        ViewBag.Message = $"Payment with Khalti completed successfully with pidx: {pidx}";
     }
     else
     {
-        ViewBag.Message = "Payment with Khalti failed";
+        ViewBag.Message = $"Payment with Khalti failed: {response.Message}";
     }
     return View();
 }
 ```
 
-### Khalti Models
-
-```csharp
-public class KhaltiCustomerInfo
-{
-    public string Name { get; set; }
-    public string Email { get; set; }
-    public string Phone { get; set; }
-}
-
-public class KhaltiProductDetail
-{
-    public string Identity { get; set; }
-    public string Name { get; set; }
-    public int TotalPrice { get; set; }    // Amount in paisa
-    public int Quantity { get; set; }
-    public int UnitPrice { get; set; }     // Amount in paisa
-}
-
-public class KhaltiAmountBreakdown
-{
-    public string Label { get; set; }
-    public int Amount { get; set; }        // Amount in paisa
-}
-```
 
 ## Test Credentials
 
@@ -253,74 +266,21 @@ public class KhaltiAmountBreakdown
 
 ## Error Handling
 
-### Common Error Scenarios
 
-```csharp
-try
-{
-    var response = await paymentManager.InitiatePaymentAsync<ApiResponse>(paymentRequest);
-    
-    if (response.Success)
-    {
-        // Handle successful payment initiation
-        return Redirect(response.Data.ToString());
-    }
-    else
-    {
-        // Handle payment initiation failure
-        ViewBag.Error = response.Message;
-        return View("Error");
-    }
-}
-catch (ArgumentException ex)
-{
-    // Handle invalid parameters
-    ViewBag.Error = $"Invalid parameter: {ex.Message}";
-    return View("Error");
-}
-catch (HttpRequestException ex)
-{
-    // Handle network/HTTP errors
-    ViewBag.Error = $"Network error: {ex.Message}";
-    return View("Error");
-}
-catch (JsonException ex)
-{
-    // Handle JSON parsing errors
-    ViewBag.Error = $"Data parsing error: {ex.Message}";
-    return View("Error");
-}
-catch (Exception ex)
-{
-    // Handle unexpected errors
-    ViewBag.Error = $"Unexpected error: {ex.Message}";
-    return View("Error");
-}
-```
+### Response Types
 
-### Error Response Handling
-
-```csharp
-public class ApiResponse : BaseResponse
-{
-    // Inherits from BaseResponse
-}
-
-public abstract class BaseResponse
-{
-    public HttpStatusCode Status { get; set; }
-    public string Message { get; set; }
-    public object Data { get; set; }
-    public bool Success { get; set; }
-    public int ErrorCode { get; set; }
-}
-```
+- **PaymentResult**: Standard wrapper for all responses with Success, Message, Data properties
+- **PaymentRequest**: eSewa payment request model (all string properties)
+- **PaymentResponse**: eSewa payment verification response
+- **RequestResponse**: Khalti payment initiation response
 
 ## Best Practices
 
 ### 1. Environment Configuration
 
 ```csharp
+using Nepal.Payments.Gateways.Enum;
+
 // Use environment variables for sensitive data
 private readonly string eSewaSecretKey = Environment.GetEnvironmentVariable("ESEWA_SECRET_KEY");
 private readonly string khaltiSecretKey = Environment.GetEnvironmentVariable("KHALTI_SECRET_KEY");
@@ -329,79 +289,6 @@ private readonly PaymentMode paymentMode = Environment.GetEnvironmentVariable("P
     : PaymentMode.Sandbox;
 ```
 
-### 2. Transaction ID Generation
-
-```csharp
-// Generate unique transaction IDs
-public string GenerateTransactionId(string prefix = "TXN")
-{
-    return $"{prefix}-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..8]}";
-}
-```
-
-### 3. Amount Validation
-
-```csharp
-// Validate amounts before processing
-public bool ValidateAmount(decimal amount)
-{
-    return amount > 0 && amount <= 1000000; // Adjust limits as needed
-}
-```
-
-### 4. URL Validation
-
-```csharp
-// Validate callback URLs
-public bool IsValidUrl(string url)
-{
-    return Uri.TryCreate(url, UriKind.Absolute, out Uri result) 
-           && (result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps);
-}
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Signature Verification Failed
-- **Cause**: Incorrect secret key or signed field names
-- **Solution**: Verify secret key and ensure signed field names match exactly
-
-#### 2. Invalid Product Code
-- **Cause**: Using wrong product code for environment
-- **Solution**: Use `EPAYTEST` for sandbox, your actual product code for production
-
-#### 3. Amount Mismatch
-- **Cause**: Total amount doesn't match sum of components
-- **Solution**: Ensure `TotalAmount = Amount + TaxAmount + ProductServiceCharge + ProductDeliveryCharge`
-
-#### 4. Network Timeout
-- **Cause**: Slow network or gateway unavailability
-- **Solution**: Implement retry logic with exponential backoff
-
-### Debug Mode
-
-```csharp
-// Enable detailed logging for debugging
-public class PaymentManager
-{
-    private readonly bool _debugMode;
-    
-    public PaymentManager(/* parameters */, bool debugMode = false)
-    {
-        _debugMode = debugMode;
-    }
-    
-    private void LogDebug(string message)
-    {
-        if (_debugMode)
-        {
-            Console.WriteLine($"[DEBUG] {DateTime.UtcNow}: {message}");
-        }
-    }
-}
-```
 
 ## Production Deployment
 
