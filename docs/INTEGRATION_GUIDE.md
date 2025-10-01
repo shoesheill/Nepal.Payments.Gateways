@@ -8,11 +8,12 @@ This comprehensive guide provides detailed instructions for integrating eSewa an
 2. [Architecture Overview](#architecture-overview)
 3. [eSewa Integration](#esewa-integration)
 4. [Khalti Integration](#khalti-integration)
-5. [Response Handling](#response-handling)
-6. [Test Credentials](#test-credentials)
-7. [Error Handling](#error-handling)
-8. [Best Practices](#best-practices)
-9. [Troubleshooting](#troubleshooting)
+5. [Fonepay Integration](#fonepay-integration)
+6. [Response Handling](#response-handling)
+7. [Test Credentials](#test-credentials)
+8. [Error Handling](#error-handling)
+9. [Best Practices](#best-practices)
+10. [Troubleshooting](#troubleshooting)
 
 ## Quick Setup
 
@@ -59,7 +60,7 @@ PaymentEndpointFactory → ApiService → HTTP Client
 
 - **PaymentManager**: Main entry point for all payment operations
 - **PaymentServiceFactory**: Creates appropriate service instances based on method and version
-- **IPaymentService**: Interface implemented by eSewa and Khalti services
+- **IPaymentService**: Interface implemented by eSewa, Khalti, and Fonepay services
 - **PaymentEndpointFactory**: Manages API endpoints for different environments
 - **ResponseConverter**: Handles safe type conversions
 - **ApiService**: HTTP client wrapper with error handling
@@ -68,6 +69,7 @@ PaymentEndpointFactory → ApiService → HTTP Client
 
 - **eSewa**: V1, V2
 - **Khalti**: V1, V2
+- **Fonepay**: No versioning (QR-based system)
 - **Environments**: Sandbox, Production
 
 ## eSewa Integration
@@ -248,6 +250,132 @@ private async Task<ActionResult> VerifyKhaltiPayment(string pidx)
 }
 ```
 
+## Fonepay Integration
+
+Fonepay is a QR-based payment system that uses WebSocket for real-time payment notifications. Unlike eSewa and Khalti, Fonepay doesn't use redirect-based payments but generates QR codes for customers to scan.
+
+### Sandbox Configuration
+
+```csharp
+private readonly string Fonepay_SecretKey = "your-fonepay-secret-key";
+private readonly string Fonepay_MerchantCode = "your-merchant-code";
+private readonly string Fonepay_Username = "your-username";
+private readonly string Fonepay_Password = "your-password";
+```
+
+### Complete Payment Flow
+
+#### 1. QR Code Generation
+
+```csharp
+using Nepal.Payments.Gateways;
+using Nepal.Payments.Gateways.Models;
+using Nepal.Payments.Gateways.Enum;
+using Nepal.Payments.Gateways.Models.Fonepay;
+
+public async Task<IActionResult> GenerateFonepayQR()
+{
+    PaymentManager paymentManager = new PaymentManager(
+        PaymentMethod.FonePay,
+        PaymentVersion.V1, // Any version works - Fonepay ignores versioning
+        PaymentMode.Sandbox,
+        Fonepay_SecretKey
+    );
+
+    var request = new QrRequest
+    {
+        Amount = "14.00",
+        Remarks1 = "Test Payment",
+        Remarks2 = "QR Integration",
+        Prn = Guid.NewGuid().ToString(), // Unique Product Reference Number
+        MerchantCode = Fonepay_MerchantCode,
+        Username = Fonepay_Username,
+        Password = Fonepay_Password,
+        TaxAmount = "2.00", // Optional
+        TaxRefund = "0.00"  // Optional
+    };
+
+    var response = await paymentManager.InitiatePaymentAsync<PaymentResult>(request);
+    var qrResponse = JsonConvert.DeserializeObject<QrResponse>(JsonConvert.SerializeObject(response.Data));
+    
+    if (qrResponse.Success)
+    {
+        // Store QR message and WebSocket URL for real-time updates
+        ViewBag.QrMessage = qrResponse.QrMessage;
+        ViewBag.WebSocketUrl = qrResponse.ThirdpartyQrWebSocketUrl;
+        ViewBag.Prn = request.Prn;
+    }
+    
+    return View();
+}
+```
+
+#### 2. Payment Status Check
+
+```csharp
+public async Task<IActionResult> CheckFonepayStatus(string prn)
+{
+    PaymentManager paymentManager = new PaymentManager(
+        PaymentMethod.FonePay,
+        PaymentVersion.V1, // Any version works - Fonepay ignores versioning
+        PaymentMode.Sandbox,
+        Fonepay_SecretKey
+    );
+
+    var verificationData = JsonConvert.SerializeObject(new
+    {
+        prn = prn,
+        merchantCode = Fonepay_MerchantCode,
+        username = Fonepay_Username,
+        password = Fonepay_Password
+    });
+
+    var response = await paymentManager.VerifyPaymentAsync<PaymentResult>(verificationData);
+    var statusResponse = JsonConvert.DeserializeObject<QrStatusResponse>(JsonConvert.SerializeObject(response.Data));
+
+    return Json(new
+    {
+        success = response.Success,
+        paymentStatus = statusResponse.PaymentStatus,
+        fonepayTraceId = statusResponse.FonepayTraceId
+    });
+}
+```
+
+#### 3. WebSocket Integration for Real-time Updates
+
+See standalone sample: `docs/FONEPAY_WEBSOCKET_SAMPLE.md`.
+
+#### 4. Tax Refund Processing (After Payment)
+
+```csharp
+public async Task<IActionResult> ProcessTaxRefund(long fonepayTraceId, string prn, string invoiceNumber)
+{
+    var paymentService = new Services.Fonepay.PaymentService(Fonepay_SecretKey, PaymentMode.Sandbox);
+    
+    var taxRefundRequest = new TaxRefundRequest
+    {
+        FonepayTraceId = fonepayTraceId,
+        TransactionAmount = "14.00",
+        MerchantPRN = prn,
+        InvoiceNumber = invoiceNumber,
+        InvoiceDate = DateTime.Now.ToString("yyyy.MM.dd"), // Nepali date format
+        MerchantCode = Fonepay_MerchantCode,
+        Username = Fonepay_Username,
+        Password = Fonepay_Password
+    };
+
+    var response = await paymentService.ProcessTaxRefundAsync<PaymentResult>(taxRefundRequest);
+    var taxRefundResponse = JsonConvert.DeserializeObject<TaxRefundResponse>(JsonConvert.SerializeObject(response.Data));
+
+    return Json(new
+    {
+        success = response.Success,
+        message = response.Message,
+        fonepayTraceId = taxRefundResponse.FonepayTraceId
+    });
+}
+```
 
 ## Test Credentials
 
@@ -264,6 +392,12 @@ private async Task<ActionResult> VerifyKhaltiPayment(string pidx)
 - **OTP**: `987654`
 - **Secret Key**: `live_secret_key_68791341fdd94846a146f0457ff7b455`
 
+### Fonepay Test Account
+- **Merchant ID**: `FONEPAY_TEST_MERCHANT`
+- **Secret Key**: `test_secret_key_fonepay_12345`
+- **Test Mobile**: `9800000001/2/3/4/5`
+- **Test Amount**: `100.00 NPR`
+
 ## Error Handling
 
 
@@ -273,6 +407,9 @@ private async Task<ActionResult> VerifyKhaltiPayment(string pidx)
 - **PaymentRequest**: eSewa payment request model (all string properties)
 - **PaymentResponse**: eSewa payment verification response
 - **RequestResponse**: Khalti payment initiation response
+- **Fonepay PaymentRequest**: Fonepay payment request model with merchant details
+- **Fonepay PaymentResponse**: Fonepay payment verification response
+- **Fonepay RequestResponse**: Fonepay payment initiation response
 
 ## Best Practices
 
@@ -284,6 +421,8 @@ using Nepal.Payments.Gateways.Enum;
 // Use environment variables for sensitive data
 private readonly string eSewaSecretKey = Environment.GetEnvironmentVariable("ESEWA_SECRET_KEY");
 private readonly string khaltiSecretKey = Environment.GetEnvironmentVariable("KHALTI_SECRET_KEY");
+private readonly string fonepaySecretKey = Environment.GetEnvironmentVariable("FONEPAY_SECRET_KEY");
+private readonly string fonepayMerchantId = Environment.GetEnvironmentVariable("FONEPAY_MERCHANT_ID");
 private readonly PaymentMode paymentMode = Environment.GetEnvironmentVariable("PAYMENT_MODE") == "Production" 
     ? PaymentMode.Production 
     : PaymentMode.Sandbox;
@@ -298,6 +437,8 @@ private readonly PaymentMode paymentMode = Environment.GetEnvironmentVariable("P
 # Production environment variables
 ESEWA_SECRET_KEY=your-production-secret-key
 KHALTI_SECRET_KEY=your-production-secret-key
+FONEPAY_SECRET_KEY=your-production-secret-key
+FONEPAY_MERCHANT_ID=your-production-merchant-id
 PAYMENT_MODE=Production
 ```
 

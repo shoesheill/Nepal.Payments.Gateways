@@ -37,6 +37,19 @@ namespace Nepal.Payments.Gateways.Factories
                 (PaymentMethod.Khalti, PaymentVersion.V2, PaymentMode.Production, PaymentAction.VerifyPayment) => 
                     (ApiEndpoints.Khalti.V2.BaseUrl + ApiEndpoints.Khalti.V2.VerifyPaymentUrl, ApiEndpoints.Khalti.V2.VerifyPaymentMethod),
 
+                // Fonepay endpoints (QR-based, version ignored)
+                (PaymentMethod.FonePay, _, PaymentMode.Production, PaymentAction.ProcessPayment) =>
+                    (ApiEndpoints.Fonepay.BaseUrl + ApiEndpoints.Fonepay.QrGenerateUrl, ApiEndpoints.Fonepay.QrGenerateMethod),
+
+                (PaymentMethod.FonePay, _, PaymentMode.Production, PaymentAction.VerifyPayment) =>
+                    (ApiEndpoints.Fonepay.BaseUrl + ApiEndpoints.Fonepay.QrStatusUrl, ApiEndpoints.Fonepay.QrStatusMethod),
+
+                (PaymentMethod.FonePay, _, PaymentMode.Sandbox, PaymentAction.ProcessPayment) =>
+                    (ApiEndpoints.Fonepay.SandboxBaseUrl + ApiEndpoints.Fonepay.QrGenerateUrl, ApiEndpoints.Fonepay.QrGenerateMethod),
+
+                (PaymentMethod.FonePay, _, PaymentMode.Sandbox, PaymentAction.VerifyPayment) =>
+                    (ApiEndpoints.Fonepay.SandboxBaseUrl + ApiEndpoints.Fonepay.QrStatusUrl, ApiEndpoints.Fonepay.QrStatusMethod),
+
                 // Unsupported combinations
                 _ => throw new ArgumentException($"The combination of {paymentMethod}, {version}, {paymentMode}, and {paymentAction} is not supported.", nameof(paymentMethod)),
             };

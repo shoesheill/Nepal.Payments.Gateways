@@ -55,5 +55,21 @@ namespace Nepal.Payments.Gateways.Constants
                 public static readonly HttpMethod PaymentCheckMethod = HttpMethod.Get;
             }
         }
+
+        public static class Fonepay
+        {
+            public const string BaseUrl = "https://merchantapi.fonepay.com/api";
+            public const string SandboxBaseUrl = "https://dev-merchantapi.fonepay.com/api";
+            public const string QrGenerateUrl = "/merchant/merchantDetailsForThirdParty/thirdPartyDynamicQrDownload";
+            public const string QrStatusUrl = "/merchant/merchantDetailsForThirdParty/thirdPartyDynamicQrGetStatus";
+            public const string TaxRefundUrl = "/merchant/merchantDetailsForThirdParty/thirdPartyPostTaxRefund";
+            public static readonly HttpMethod QrGenerateMethod = HttpMethod.Post;
+            public static readonly HttpMethod QrStatusMethod = HttpMethod.Post;
+            public static readonly HttpMethod TaxRefundMethod = HttpMethod.Post;
+
+            // WebSocket URLs
+            public const string WebSocketUrl = "wss://ws.fonepay.com/convergent-webSocket-web/merchantEndPoint";
+            public const string SandboxWebSocketUrl = "wss://dev-ws.fonepay.com/convergent-webSocket-web/merchantEndPoint";
+        }
     }
 }

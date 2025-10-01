@@ -18,6 +18,7 @@ namespace Nepal.Payments.Gateways.Factories
                 (PaymentMethod.Esewa, PaymentVersion.V2) => new PaymentService(secretKey, paymentMode),
                 (PaymentMethod.Khalti, PaymentVersion.V1) => new Services.Khalti.V1.PaymentService(secretKey, paymentMode),
                 (PaymentMethod.Khalti, PaymentVersion.V2) => new Services.Khalti.V2.PaymentService(secretKey, paymentMode),
+                (PaymentMethod.FonePay, _) => new Services.Fonepay.PaymentService(secretKey, paymentMode),
                 _ => throw new ArgumentException($"The combination of {paymentMethod} and {version} is not supported.", nameof(paymentMethod)),
             };
         }
