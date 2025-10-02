@@ -285,7 +285,8 @@ This project is licensed under the MIT License - see the [LICENSE](docs/LICENSE)
 
 ## 🏷️ Version History
 
-- **v1.0.1** - Added Fonepay real-time monitoring and auto-verification 
+- **v2.0.0** - Added Fonepay Dynamic QR with real-time monitoring and auto-verification
+- **v1.0.1** - Fixed ResponseResult on eSewa and Khalti Response
 - **v1.0.0** - Initial release with Khalti and eSewa support 
 
 ---
