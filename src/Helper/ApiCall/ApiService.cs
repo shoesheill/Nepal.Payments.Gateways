@@ -29,16 +29,21 @@ namespace Nepal.Payments.Gateways.Helper.ApiCall
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 
+                // Create the request
+                var request = new HttpRequestMessage(httpMethod, apiPath);
+                
+                // Add non-content headers to the request
                 if (headerParam != null)
                 {
                     foreach (var keyValue in headerParam)
                     {
-                        _httpClient.DefaultRequestHeaders.Add(keyValue.Key, keyValue.Value);
+                        // Skip Content-Type as it should be set on the content, not headers
+                        if (!string.Equals(keyValue.Key, "Content-Type", StringComparison.OrdinalIgnoreCase))
+                        {
+                            request.Headers.Add(keyValue.Key, keyValue.Value);
+                        }
                     }
                 }
-
-                // Create the request
-                var request = new HttpRequestMessage(httpMethod, apiPath);
                 
                 // Set request content based on what's provided
                 if (keyValuePairs != null)
