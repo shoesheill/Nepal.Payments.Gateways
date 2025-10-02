@@ -19,12 +19,18 @@
     <RootNamespace>Nepal.Payments.Gateways</RootNamespace>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Sushil Shrestha</Authors>
-    <Description>A comprehensive .NET library for integrating popular Nepali payment gateways including eSewa and Khalti. This package provides a unified interface for processing payments, verifying transactions, and handling different payment gateway versions with support for both sandbox and production environments.</Description>
-    <PackageTags>nepal; payment; gateway; esewa; khalti; nepali; fintech; fonepay; fonepay dynamic qr; payment-processing</PackageTags>
+    <Description>Easy-peasy payments gateways package for Nepal 🇳🇵 — integrate eSewa, Khalti, and Fonepay (Dynamic QR) without jhanjhat. Just plug, pay, and chill! 💸</Description>
+    <PackageTags>nepal; payment; gateway; esewa; khalti; nepali; fonepay; fonepay dynamic qr; nepal payments gateways;</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReleaseNotes>Enhanced package with improved naming conventions, comprehensive documentation, and better error handling.</PackageReleaseNotes>
+    <PackageReleaseNotes> 
+      - Simplified integration for popular Nepali payment providers  
+        • eSewa  
+        • Khalti  
+        • Fonepay (Dynamic QR support)  
+      - Easy-to-use APIs for faster payment gateway implementation  
+</PackageReleaseNotes>
     <PackageId>Nepal.Payments.Gateways</PackageId>
-    <Version>1.0.1</Version>
+    <Version>2.0.0</Version>
     <PackageProjectUrl>https://payments-demo.nepalidev.com.np</PackageProjectUrl>
     <RepositoryUrl>https://github.com/shoesheill/Nepal.Payments.Gateways</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -35,6 +41,13 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
 
     <ItemGroup>
