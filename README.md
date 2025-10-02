@@ -1,6 +1,7 @@
 # Nepal.Payments.Gateways
 
-A comprehensive .NET library for integrating popular Nepali payment gateways including **Khalti**, **eSewa**, and **Fonepay** with real-time monitoring capabilities.
+Easy-peasy payments gateways package for Nepal 🇳🇵 — integrate eSewa, Khalti, and Fonepay (Dynamic QR) without jhanjhat. Just plug, pay, and chill! 💸
+
 > Nepali ma bhannu parda "Paisa Tirne System" ho! 💰
 
 > **Note:** yo implement garna jinsi saman haru kei chaidaina
