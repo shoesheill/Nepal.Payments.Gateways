@@ -42,8 +42,14 @@ namespace Nepal.Payments.Gateways.Helper
 
             using (var hmacsha512 = new HMACSHA512(keyBytes))
             {
+                // Fonepay's dataValidation must be lowercase hex, not base64 — its own
+                // worked example in Billing-3rdparty-Integration-Requirement.pdf only
+                // reproduces when the digest is hex-encoded.
                 byte[] hashBytes = hmacsha512.ComputeHash(messageBytes);
-                return Convert.ToBase64String(hashBytes);
+                var hex = new StringBuilder(hashBytes.Length * 2);
+                foreach (byte b in hashBytes)
+                    hex.Append(b.ToString("x2"));
+                return hex.ToString();
             }
         }
     }
