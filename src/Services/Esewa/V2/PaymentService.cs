@@ -1,29 +1,38 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using Nepal.Payments.Gateways.Constants;
 using Nepal.Payments.Gateways.Enum;
+using Nepal.Payments.Gateways.Factories;
 using Nepal.Payments.Gateways.Helper;
 using Nepal.Payments.Gateways.Helper.ApiCall;
 using Nepal.Payments.Gateways.Interfaces;
 using Nepal.Payments.Gateways.Models;
 using Nepal.Payments.Gateways.Models.eSewa;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Nepal.Payments.Gateways.Services.Esewa.V2
 {
-    public class PaymentService : IPaymentService
+    public class PaymentService : IPaymentService, IStatusCheckService
     {
         private readonly string _secretKey;
         private readonly PaymentMode _paymentMode;
+        private readonly string _baseUrl;
         private readonly ApiService _apiService;
-        public PaymentService(string secretKey, PaymentMode paymentMode)
+
+        public PaymentService(string secretKey, PaymentMode paymentMode) : this(secretKey, paymentMode, null) { }
+
+        public PaymentService(string secretKey, PaymentMode paymentMode, string baseUrl)
         {
             _secretKey = secretKey ?? throw new ArgumentNullException(nameof(secretKey));
             _paymentMode = paymentMode;
+            _baseUrl = baseUrl;
             _apiService = new ApiService(new HttpClient());
         }
+
         public async Task<T> InitiatePaymentAsync<T>(object content, PaymentVersion version)
         {
             if (!(content is PaymentRequest request))
@@ -31,126 +40,132 @@ namespace Nepal.Payments.Gateways.Services.Esewa.V2
 
             try
             {
-                string signature = GenerateEsewaV2Signature(request);
-                request.Signature = signature;
-                string baseUrl = _paymentMode == PaymentMode.Sandbox 
-                    ? ApiEndpoints.Esewa.V2.SandboxBaseUrl 
-                    : ApiEndpoints.Esewa.V2.BaseUrl;
-                var json = JsonConvert.SerializeObject(request);
-                string endpoint = $"{baseUrl}{ApiEndpoints.Esewa.V2.ProcessPaymentUrl}";
-                 var keyValuePairs = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-                var response = await _apiService.GetAsyncResult<string>(
-                    endpoint,
-                    ApiEndpoints.Esewa.V2.ProcessPaymentMethod,
-                    keyValuePairs: keyValuePairs
-                );
+                request.Signature = GenerateEsewaV2Signature(request);
+                var (endpoint, method) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.Esewa, PaymentVersion.V2, PaymentAction.ProcessPayment, _paymentMode, _baseUrl);
+                var keyValuePairs = JsonConvert.DeserializeObject<Dictionary<string, string>>(JsonConvert.SerializeObject(request));
+                var response = await _apiService.GetAsyncResult<string>(endpoint, method, keyValuePairs: keyValuePairs);
 
                 return ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
-                    Data = new RequestResponse{PaymentUrl = response ?? ""},
+                    Data = new RequestResponse { PaymentUrl = response ?? "" },
                     Success = true,
                     Message = "Payment initiated successfully"
                 });
             }
             catch (Exception ex)
             {
-                return ResponseConverter.ConvertTo<T>(new PaymentResult
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
+                return ResponseConverter.ConvertTo<T>(new PaymentResult { Success = false, Message = ex.Message });
             }
         }
-        public async Task<T> VerifyPaymentAsync<T>(string content, PaymentVersion version)
+
+        /// <summary>Verifies the signed <c>data</c> eSewa appends to success_url (base64 JSON).</summary>
+        public Task<T> VerifyPaymentAsync<T>(string content, PaymentVersion version)
         {
             if (string.IsNullOrEmpty(content))
                 throw new ArgumentException("Verification content cannot be null or empty", nameof(content));
 
             try
             {
-                // For eSewa V2, the content is typically a base64 encoded response
-                // that needs to be decoded and verified
-                string decodedContent = DecodeBase64Content(content);
-                
-                // Parse the decoded content to extract transaction details
-                var transactionData = ParseEsewaV2Response(decodedContent);
-                
-                // Verify the signature
-                bool isValid = VerifyEsewaV2Signature(transactionData);
-                
-                if (!isValid)
-                {
+                var json = JObject.Parse(DecodeBase64Content(content));
+                if (!HasValidSignature(json))
                     throw new InvalidOperationException("Invalid signature in eSewa V2 response");
-                }
-                return ResponseConverter.ConvertTo<T>(new PaymentResult
+
+                return Task.FromResult(ResponseConverter.ConvertTo<T>(new PaymentResult
                 {
-                    Data = transactionData,
+                    Data = json.ToObject<PaymentResponse>(),
                     Success = true,
                     Message = "Payment verified successfully"
-                });
+                }));
             }
             catch (Exception ex)
             {
-                return ResponseConverter.ConvertTo<T>(new PaymentResult
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
+                return Task.FromResult(ResponseConverter.ConvertTo<T>(new PaymentResult { Success = false, Message = ex.Message }));
             }
         }
+
+        /// <summary>Asks eSewa's status API what happened — the only server-authoritative answer.</summary>
+        public async Task<T> CheckStatusAsync<T>(object content)
+        {
+            if (!(content is StatusRequest request))
+                throw new ArgumentException("Content must be of type StatusRequest", nameof(content));
+
+            try
+            {
+                var (endpoint, _) = PaymentEndpointFactory.GetEndpoint(PaymentMethod.Esewa, PaymentVersion.V2, PaymentAction.CheckPayment, _paymentMode, _baseUrl);
+                var url = BuildStatusUrl(endpoint, request);
+                var response = await _apiService.GetAsyncResult<StatusResponse>(url, HttpMethod.Get);
+
+                return ResponseConverter.ConvertTo<T>(new PaymentResult { Data = response, Success = true, Message = "Status retrieved successfully" });
+            }
+            catch (Exception ex)
+            {
+                return ResponseConverter.ConvertTo<T>(new PaymentResult { Success = false, Message = ex.Message });
+            }
+        }
+
+        internal static string BuildStatusUrl(string statusEndpoint, StatusRequest request)
+        {
+            if (!statusEndpoint.Contains("/epay/transaction/status"))
+                statusEndpoint = PaymentEndpointFactory.Combine(statusEndpoint, Constants.ApiEndpoints.Esewa.V2.VerifyPaymentUrl);
+
+            return $"{statusEndpoint}?product_code={Uri.EscapeDataString(request.ProductCode ?? "")}"
+                   + $"&total_amount={Uri.EscapeDataString(request.TotalAmount ?? "")}"
+                   + $"&transaction_uuid={Uri.EscapeDataString(request.TransactionUuid ?? "")}";
+        }
+
         private string GenerateEsewaV2Signature(PaymentRequest request)
         {
-            // Create the message to sign based on signed field names
-            var signedFields = request.SignedFieldNames.Split(',');
-            var messageParts = new List<string>();
-
-            foreach (var field in signedFields)
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                var trimmedField = field.Trim();
-                switch (trimmedField.ToLower())
-                {
-                    case "total_amount":
-                        messageParts.Add($"total_amount={request.TotalAmount}");
-                        break;
-                    case "transaction_uuid":
-                        messageParts.Add($"transaction_uuid={request.TransactionUuid}");
-                        break;
-                    case "product_code":
-                        messageParts.Add($"product_code={request.ProductCode}");
-                        break;
-                }
-            }
-
-            string message = string.Join(",", messageParts);
+                ["total_amount"] = request.TotalAmount,
+                ["transaction_uuid"] = request.TransactionUuid,
+                ["product_code"] = request.ProductCode,
+            };
+            var message = string.Join(",", request.SignedFieldNames.Split(',')
+                .Select(f => f.Trim())
+                .Where(values.ContainsKey)
+                .Select(f => $"{f}={values[f]}"));
             return HmacHelper.GenerateHmacSha256Signature(message, _secretKey);
         }
-        private bool VerifyEsewaV2Signature(object transactionData)
+
+        private bool HasValidSignature(JObject json)
         {
-            return true;
-        }
-        private string DecodeBase64Content(string encodedContent)
-        {
-            try
+            var signature = (string)json["signature"];
+            var signedFieldNames = (string)json["signed_field_names"];
+            if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(signedFieldNames))
+                return false;
+
+            var parts = new List<string>();
+            foreach (var field in signedFieldNames.Split(',').Select(f => f.Trim()))
             {
-                byte[] data = Convert.FromBase64String(encodedContent);
-                return System.Text.Encoding.UTF8.GetString(data);
+                var token = json[field];
+                if (token == null)
+                    return false;
+                parts.Add($"{field}={(token.Type == JTokenType.String ? (string)token : token.ToString(Formatting.None))}");
             }
-            catch
-            {
-                // If not base64, return as is
-                return encodedContent;
-            }
+
+            return FixedTimeEquals(HmacHelper.GenerateHmacSha256Signature(string.Join(",", parts), _secretKey), signature);
         }
 
-        private PaymentResponse ParseEsewaV2Response(string responseData)
+        private static bool FixedTimeEquals(string a, string b)
+        {
+            if (a.Length != b.Length)
+                return false;
+            var diff = 0;
+            for (var i = 0; i < a.Length; i++)
+                diff |= a[i] ^ b[i];
+            return diff == 0;
+        }
+
+        private static string DecodeBase64Content(string encodedContent)
         {
             try
             {
-                return JsonConvert.DeserializeObject<PaymentResponse>(responseData);
+                return Encoding.UTF8.GetString(Convert.FromBase64String(encodedContent));
             }
-            catch (Exception ex)
+            catch (FormatException)
             {
-                throw new InvalidOperationException("Failed to parse eSewa V2 response", ex);
+                return encodedContent;
             }
         }
     }

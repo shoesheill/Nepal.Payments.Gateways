@@ -32,9 +32,14 @@
         but Fonepay's API requires lowercase hex, so every signed request (QR
         generation, status check, tax refund) was being rejected with
         "Data Validation Failed". eSewa's HMAC-SHA256 signing is unaffected.
+      - 2.1.0: eSewa V2 production form URL no longer doubles its path; Khalti V2 uses the
+        documented hosts (khalti.com/api/v2/, dev.khalti.com/api/v2/) and a JSON lookup body;
+        eSewa V2 callback signatures are actually verified; new PaymentManager.CheckStatusAsync
+        (eSewa status API, Khalti lookup) and an optional base-URL override. System.Text.Json
+        8.0.0 → 8.0.6 (netstandard targets) for GHSA-8g4q-xg66-9fp4 and GHSA-hh2w-p6rv-4g7w.
 </PackageReleaseNotes>
     <PackageId>Nepal.Payments.Gateways</PackageId>
-    <Version>2.0.1</Version>
+    <Version>2.1.0</Version>
     <PackageProjectUrl>https://payments-demo.nepalidev.com.np</PackageProjectUrl>
     <RepositoryUrl>https://github.com/shoesheill/Nepal.Payments.Gateways</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -44,13 +49,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Nepal.Payments.Gateways.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' OR '$(TargetFramework)' == 'netstandard2.1'">
-    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
 
