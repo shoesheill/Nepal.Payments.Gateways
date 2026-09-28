@@ -73,6 +73,29 @@ if (response.Success)
 }
 ```
 
+#### Confirming the payment (server-side)
+
+Never trust the query string on your return URL. Ask the provider:
+
+```csharp
+// eSewa V2 — status API
+var esewa = new PaymentManager(PaymentMethod.Esewa, PaymentVersion.V2, PaymentMode.Sandbox, secretKey);
+var result = await esewa.CheckStatusAsync<PaymentResult>(new Models.eSewa.StatusRequest
+{
+    ProductCode = "EPAYTEST", TotalAmount = "100", TransactionUuid = transactionUuid
+});
+var status = (result.Data as Models.eSewa.StatusResponse)?.Status; // "COMPLETE" when paid
+
+// Khalti V2 — lookup by pidx (total_amount is in paisa)
+var khalti = new PaymentManager(PaymentMethod.Khalti, PaymentVersion.V2, PaymentMode.Sandbox, secretKey);
+var lookup = await khalti.CheckStatusAsync<PaymentResult>(pidx);
+var paid = (lookup.Data as Models.Khalti.PaymentResponse)?.Status == "Completed";
+```
+
+eSewa's `?data=` callback can also be checked with `VerifyPaymentAsync(data)`, which validates its
+HMAC signature. Pass an optional `baseUrl` to the `PaymentManager` constructor to override a
+provider host.
+
 ### 4. Real-time QR Payment (Fonepay)
 
 ```csharp
